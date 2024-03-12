@@ -1,10 +1,11 @@
-//! Simple, Lighweight and "not" thread safe Singleton instance but it's depend on the usage,
+//! Simple, Lighweight and "not" thread safe Singleton instance but it depend on the usage,
 //! feel free to make thread safe wrapper
 //!
 //! Currently it can :
 //!  * Set value to the instance with type.
 //!  * Get reference value to the instance with type.
 //!  * Get mutable reference value to the instance with type.
+//!  * Work at no_std environment
 //!
 //! ### Examples
 //! ```
@@ -29,7 +30,7 @@
 //!  * Wrap your type with [`Arc`] and then [`Mutex`] or [`RwLock`]
 //!  * If you can avoid using [`Singleton::get_mut`] or get [`Singleton::try_get_mut`], or you know
 //!  what you are doing
-//!  * For Singleton instance in static context please use [`Mutex`]
+//!  * For [`Singleton`] instance in static context please use [`Mutex`]
 //!
 //! If none of this above not introduce it will definitely going to be data race
 //!
@@ -73,7 +74,7 @@
 //! ```
 //!
 //! There is example on
-//! [integration_test.rs](https://github.com/UnknownRori/singly-rs/blob/main/test/integration_test.rs)
+//! [integration_test.rs](https://github.com/UnknownRori/singly-rs/blob/main/tests/integration_test.rs)
 
 #![no_std]
 

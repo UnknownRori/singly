@@ -1,6 +1,6 @@
 # Singly
 
-Simple, Lighweight and "not" thread safe Singleton instance but it's depend on the usage, 
+Simple, Lighweight and "not" thread safe Singleton instance but it depend on the usage, 
 consult the docs for more information regarding thread safety, feel free to make thread safe wrapper
 
 ## Features
@@ -8,6 +8,7 @@ consult the docs for more information regarding thread safety, feel free to make
  * Set value to the instance with type.
  * Get reference value to the instance with type.
  * Get mutable reference value to the instance with type.
+ * Work at `no_std` environment
 
 ## Examples
 

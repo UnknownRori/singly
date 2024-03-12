@@ -1,11 +1,13 @@
 [package]
 name = "singly"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["UnknownRori <68576836+UnknownRori@users.noreply.github.com>"]
-description = "Lightweight Non-Thread Safe Singleton"
+description = "Lightweight \"not\" thread safe singleton but it depend on the usage though"
 license = "MIT"
-repository = "https://github.com/UnknownRori/singly"
+repository = "https://github.com/UnknownRori/singly-rs"
+keywords = ["singleton"]
+categories = ["no-std"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
