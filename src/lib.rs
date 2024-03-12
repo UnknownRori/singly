@@ -1,12 +1,10 @@
-//! Simple, Lighweight and "not" thread safe Singleton instance feel free to create a wrapper for thread safe
+//! Simple, Lighweight and "not" thread safe Singleton instance but it's depend on the usage,
+//! feel free to make thread safe wrapper
+//!
 //! Currently it can :
 //!  * Set value to the instance with type.
 //!  * Get reference value to the instance with type.
 //!  * Get mutable reference value to the instance with type.
-//!
-//! Limitation :
-//!   * Cannot be initialized at static scope since it's still not a thread safe under the hood
-//!   (maybe there is workaround feel free to send Pull Request)
 //!
 //! ### Examples
 //! ```
@@ -28,8 +26,12 @@
 //!
 //! ## Some tips for Thread Safety
 //!
-//!  * Wrap your type with [`std::sync::Arc`] and then [`Mutex`] or [`RwLock`]
-//!  * Avoid using [`Singleton::get_mut`] or get [`Singleton::try_get_mut`]
+//!  * Wrap your type with [`Arc`] and then [`Mutex`] or [`RwLock`]
+//!  * If you can avoid using [`Singleton::get_mut`] or get [`Singleton::try_get_mut`], or you know
+//!  what you are doing
+//!  * For Singleton instance in static context please use [`Mutex`]
+//!
+//! If none of this above not introduce it will definitely going to be data race
 //!
 //! ### Examples Concurrent Situation
 //! ```
@@ -80,9 +82,11 @@ use core::{
     borrow::{Borrow, BorrowMut},
 };
 
+use inner::Inner;
+
 extern crate alloc;
 
-use alloc::boxed::Box;
+mod inner;
 
 #[derive(Debug)]
 /// Base instance for Singleton storage
@@ -90,7 +94,7 @@ pub struct Singleton {
     /// Property to store any type of value in here
     /// It only allow single type every value
     /// If it insert with same type it will silently overwrite the old value
-    storage: hashbrown::HashMap<TypeId, Box<dyn Any>>,
+    storage: hashbrown::HashMap<TypeId, Inner>,
 }
 
 impl Singleton {
@@ -139,7 +143,7 @@ impl Singleton {
     /// Store the data to [`Singleton`] storage
     /// Will silently overwrite old value if any
     pub fn set<T: Any>(&mut self, data: T) {
-        self.storage.insert(TypeId::of::<T>(), Box::new(data));
+        self.storage.insert(TypeId::of::<T>(), Inner::new(data));
     }
 
     /// Get reference to data from global storage.
@@ -147,7 +151,7 @@ impl Singleton {
     pub fn try_get<T: Any>(&self) -> Option<&T> {
         self.storage
             .get(&TypeId::of::<T>())
-            .and_then(|data| data.downcast_ref::<T>().map(|data| data.borrow()))
+            .and_then(|data| data.get().downcast_ref::<T>().map(|data| data.borrow()))
     }
 
     /// Get reference to data from global storage.
@@ -163,7 +167,8 @@ impl Singleton {
     /// Will return None if there is no data available with this type.
     pub fn try_get_mut<T: Any>(&mut self) -> Option<&mut T> {
         self.storage.get_mut(&TypeId::of::<T>()).and_then(|data| {
-            data.downcast_mut::<T>()
+            data.get_mut()
+                .downcast_mut::<T>()
                 .map(|data| data.borrow_mut() as &mut T)
         })
     }

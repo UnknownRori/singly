@@ -1,16 +1,16 @@
 use std::{
-    any::Any,
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, Mutex},
     thread::spawn,
 };
 
+use lazy_static::lazy_static;
 use rand::Rng;
 
 use singly::Singleton;
 
 struct ExamScore(Vec<i32>);
 
-// Multi threaded situation
+// ------ For Normal situation in Multi Threaded Environment ---------
 
 #[test]
 fn multi_thread_situation_reading() {
@@ -68,5 +68,36 @@ fn multi_thread_situation_counter() {
         .collect::<Result<Vec<_>, _>>();
 
     let counter = instance.get::<ArcMutexCounter>().lock().unwrap().0;
+    assert_eq!(counter, 10);
+}
+
+// ------ For Static Usage in Multi Threaded Environment ---------
+
+lazy_static! {
+    static ref SINGLETON_INSTANCE: Mutex<Singleton> = Mutex::new(Singleton::new());
+}
+
+#[test]
+fn static_test() {
+    let counter = Counter(0);
+    SINGLETON_INSTANCE.lock().unwrap().set(counter);
+
+    let mut handles = vec![];
+    for _ in 0..10 {
+        let handle = spawn(move || {
+            let mut instance = SINGLETON_INSTANCE.lock().unwrap();
+            instance
+                .try_get_mut::<Counter>()
+                .map(|counter| (*counter).0 += 1);
+        });
+        handles.push(handle);
+    }
+
+    let _ = handles
+        .into_iter()
+        .map(|handle| handle.join())
+        .collect::<Result<Vec<_>, _>>();
+
+    let counter = SINGLETON_INSTANCE.lock().unwrap().get::<Counter>().0;
     assert_eq!(counter, 10);
 }
